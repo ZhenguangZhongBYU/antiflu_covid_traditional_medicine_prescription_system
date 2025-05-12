@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中医治感冒开方小程序</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+            border-left: 4px solid #3498db;
+            padding-left: 10px;
+        }
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+        }
+        .slider-container input[type="range"] {
+            flex: 1;
+            margin: 0 10px;
+        }
+        .slider-value {
+            width: 30px;
+            text-align: center;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .results {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .medicine-card {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+            position: relative;
+        }
+        .medicine-name {
+            font-weight: bold;
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .medicine-dose {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: #e74c3c;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 14px;
+        }
+        .medicine-values {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        .value-item {
+            text-align: center;
+            flex: 1;
+        }
+        .value-label {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        .value-number {
+            font-weight: bold;
+        }
+        .positive {
+            color: #e74c3c;
+        }
+        .negative {
+            color: #3498db;
+        }
+        .zero {
+            color: #7f8c8d;
+        }
+        .guide {
+            background-color: #eaf7fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+        .guide p {
+            margin: 5px 0;
+        }
+        .symptom-explanation {
+            margin-bottom: 30px;
+        }
+        .symptom-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border-left: 3px solid #3498db;
+        }
+        .symptom-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .symptom-detail {
+            margin-left: 10px;
+        }
+        .symptom-scale {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        .symptom-level {
+            margin-top: 15px;
+        }
+        .level-item {
+            display: flex;
+            margin-bottom: 8px;
+            align-items: flex-start;
+        }
+        .level-value {
+            font-weight: bold;
+            width: 50px;
+            color: #e74c3c;
+        }
+        .level-desc {
+            flex: 1;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+        .tab-container {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 15px;
+            background-color: #eee;
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .note {
+            font-size: 13px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>中医治感冒开方小程序</h1>
+    
+    <div class="guide">
+        <h2>使用说明</h2>
+        <p>本程序根据中医理论，通过分析您的感冒症状，为您推荐最适合的中药材及剂量。</p>
+        <p>请根据您的实际情况，为每个症状评分（0到10之间），然后点击"计算推荐药方"按钮。</p>
+        <p><strong>评分说明：</strong>数值越大表示症状越严重，0表示无症状。</p>
+    </div>
+    
+    <div class="tab-container">
+        <div class="tab active" onclick="switchTab('symptoms')">症状评分</div>
+        <div class="tab" onclick="switchTab('explanation')">中医理论详解</div>
+    </div>
+    
+    <div id="symptoms-tab" class="tab-content active">
+        <div class="form-container">
+            <div class="symptom-item">
+                <div class="symptom-title">1. 嗓子症状</div>
+                <div class="symptom-detail">
+                    <p>评估您咽喉部位的不适程度：</p>
+                    <div class="symptom-level">
+                        <div class="level-item">
+                            <div class="level-value">0分</div>
+                            <div class="level-desc">咽喉无任何不适感</div>
+                        </div>
+                        <div class="level-item">
+                            <div class="level-value">1-3分</div>
+                            <div class="level-desc">轻微咽喉不适，偶有干痒感，不影响进食</div>
+                        </div>
+                        <div class="level-item">
+                            <div class="level-value">4-6分</div>
+                            <div class="level-desc">明显咽喉肿痛，吞咽时有不适感，可能伴有轻微红肿</div>
+                        </div>
+                        <div class="level-item">
+                            <div class="level-value">7-8分</div>
+                            <div class="level-desc">严重咽喉疼痛，吞咽困难，明显红肿</div>
+                        </div>
+                        <div class="level-item">
+                            <div class="level-value">9-10分</div>
+                            <div class="level-desc">极度疼痛，几乎无法吞咽，可能伴有化脓或溃疡</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="throat">嗓子症状评分 (0到10):</label>
+                        <div class="slider-container">
+                            <span>0</span>
+                            <input type="range" id="throat" min="0" max="10" value="8" step="1" oninput="updateSliderValue(this)">
+                            <span class="slider-value">8</span>
+                            <span>10</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="symptom-item">
+                <div class="symptom-title">2. 胃肠症状</div>
+                <div class="symptom-detail">
+                    <p>评估您消化系统的不适程度：</p>
+                    <div class="symptom-level">
+                        <div class="level-item">
+                            <div class="level-value">0分</div>
+                            <div class="level-desc">胃肠无任何不适，食欲正常</div>
+                        </div>
+                        <div class="level-item">
+                            <div class="level-value">1-3分</div>
+                            <div class="level-desc">轻微食欲减退，偶有饱胀感</div>
+                        </div>
+                        <div class="level-item">
+                            <div class="level-value">4-6分</div>
+                            <div class="level-desc">明显食欲不振，胃脘胀满，可能有轻微恶心</div>
+                        </div>
+                        <div class="level-item">
+                            <div class="level-value">7-8分</div>
+                            <div class="level-desc">严重胃部不适，频繁恶心，可能伴有呕吐</div>
+                        </div>
+                        <div class="level-item">
+                            <div class="level-value">9-10分</div>
+                            <div class="level-desc">剧烈胃痛或腹痛，持续呕吐，无法进食</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="stomach">胃肠症状评分 (0到10):</label>
+                        <div class="slider-container">
+                            <span>0</span>
+                            <input type="range" id="stomach" min="0" max="10" value="5" step="1" oninput="updateSliderValue(this)">
+                            <span class="slider-value">5</span>
+                            <span>10</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="symptom-item">
+                <div class="symptom-title">3. 能量状况</div>
+                <div class="symptom-detail">
+                    <p>评估您的疲劳虚弱程度：</p>
+                    <div class="symptom-level">
+                        <div class="level-item">
+                            <div class="level-value">0分</div>
+                            <div class="level-desc">精力充沛，无疲劳感</div>
+                        </div>
+                        <div class="level-item">
+                            <div class="level-value">1-3分</div>
+                            <div class="level-desc">轻微疲劳，日常活动后略感疲倦</div>
+                        </div>
+                        <div class="level-item">
+                            <div class="level-value">4-6分</div>
+                            <div class="level-desc">明显乏力，轻微活动即感疲劳，休息后缓解不明显</div>
+                        </div>
+                        <div class="level-item">
+                            <div class="level-value">7-8分</div>
+                            <div class="level-desc">严重虚弱，不愿活动，卧床时间增加</div>
+                        </div>
+                        <div class="level-item">
+                            <div class="level-value">9-10分</div>
+                            <div class="level-desc">极度虚弱，几乎无法起床，说话都感费力</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="energy">能量状况评分 (0到10):</label>
+                        <div class="slider-container">
+                            <span>0</span>
+                            <input type="range" id="energy" min="0" max="10" value="4" step="1" oninput="updateSliderValue(this)">
+                            <span class="slider-value">4</span>
+                            <span>10</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="symptom-item">
+                <div class="symptom-title">4. 寒症表现</div>
+                <div class="symptom-detail">
+                    <p>评估您的畏寒怕冷程度：</p>
+                    <div class="symptom-level">
+                        <div class="level-item">
+                            <div class="level-value">0分</div>
+                            <div class="level-desc">无怕冷感觉，体温正常</div>
+                        </div>
+                        <div class="level-item">
+                            <div class="level-value">1-3分</div>
+                            <div class="level-desc">轻微怕风，不喜吹风但不需要加衣</div>
+                        </div>
+                        <div class="level-item">
+                            <div class="level-value">4-6分</div>
+                            <div class="level-desc">明显畏寒，需添加衣物，喜热饮</div>
+                        </div>
+                        <div class="level-item">
+                            <div class="level-value">7-8分</div>
+                            <div class="level-desc">严重怕冷，穿厚衣仍感寒冷，四肢不温</div>
+                        </div>
+                        <div class="level-item">
+                            <div class="level-value">9-10分</div>
+                            <div class="level-desc">极度畏寒，蜷缩在被中仍发抖，四肢厥冷</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cold">寒症评分 (0到10):</label>
+                        <div class="slider-container">
+                            <span>0</span>
+                            <input type="range" id="cold" min="0" max="10" value="5" step="1" oninput="updateSliderValue(this)">
+                            <span class="slider-value">5</span>
+                            <span>10</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="symptom-item">
+                <div class="symptom-title">5. 热症表现</div>
+                <div class="symptom-detail">
+                    <p>评估您的发热程度：</p>
+                    <div class="symptom-level">
+                        <div class="level-item">
+                            <div class="level-value">0分</div>
+                            <div class="level-desc">无发热，体温正常</div>
+                        </div>
+                        <div class="level-item">
+                            <div class="level-value">1-3分</div>
+                            <div class="level-desc">轻微发热(37.3-38°C)，略感燥热</div>
+                        </div>
+                        <div class="level-item">
+                            <div class="level-value">4-6分</div>
+                            <div class="level-desc">中度发热(38.1-39°C)，明显热感，口渴</div>
+                        </div>
+                        <div class="level-item">
+                            <div class="level-value">7-8分</div>
+                            <div class="level-desc">高热(39.1-40°C)，面红目赤，烦渴</div>
+                        </div>
+                        <div class="level-item">
+                            <div class="level-value">9-10分</div>
+                            <div class="level-desc">超高热(40°C以上)，烦躁不安，甚至神昏</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="heat">热症评分 (0到10):</label>
+                        <div class="slider-container">
+                            <span>0</span>
+                            <input type="range" id="heat" min="0" max="10" value="8" step="1" oninput="updateSliderValue(this)">
+                            <span class="slider-value">8</span>
+                            <span>10</span>
+                        </div>
+                        <div class="note">注意：寒热症状可能同时存在，请根据主要表现评分</div>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="calculateMedicine()">计算推荐药方</button>
+        </div>
+        
+        <div class="results" id="results">
+            <p>请输入症状值并点击计算按钮，将在此显示最适合的药材及剂量。</p>
+        </div>
+    </div>
+    
+    <div id="explanation-tab" class="tab-content">
+        <div class="symptom-explanation">
+            <h2>中医感冒辨证理论详解</h2>
+            
+            <div class="symptom-item">
+                <div class="symptom-title">一、中医对感冒的认识</div>
+                <p>中医将感冒称为"外感病"，认为是由外邪(风、寒、暑、湿、燥、火)侵袭人体所致。根据病邪性质和患者体质不同，可分为多种证型：</p>
+                <ol>
+                    <li><strong>风寒感冒：</strong>恶寒重、发热轻、无汗、头痛身痛</li>
+                    <li><strong>风热感冒：</strong>发热重、恶寒轻、有汗、咽喉肿痛</li>
+                    <li><strong>暑湿感冒：</strong>夏季多见，发热、头身困重、胸闷恶心</li>
+                    <li><strong>气虚感冒：</strong>反复感冒、乏力明显、病程迁延</li>
+                </ol>
+            </div>
+            
+            <div class="symptom-item">
+                <div class="symptom-title">二、症状评分详解</div>
+                <p>本系统评估五个维度的症状表现，每个症状0-10分评分标准如下：</p>
+                
+                <div class="symptom-level">
+                    <div class="level-item">
+                        <div class="level-value">嗓子症状</div>
+                        <div class="level-desc">
+                            <p>反映上呼吸道感染程度，分值越高表示咽喉炎症越严重</p>
+                            <p>中医认为咽喉是肺胃之门户，咽喉症状可反映病邪性质</p>
+                        </div>
+                    </div>
+                    <div class="level-item">
+                        <div class="level-value">胃肠症状</div>
+                        <div class="level-desc">
+                            <p>反映脾胃功能状态，分值越高表示消化系统症状越明显</p>
+                            <p>中医认为"脾胃为后天之本"，胃肠症状反映正气强弱</p>
+                        </div>
+                    </div>
+                    <div class="level-item">
+                        <div class="level-value">能量状况</div>
+                        <div class="level-desc">
+                            <p>反映机体能量储备，分值越高表示虚弱程度越严重</p>
+                            <p>中医称为"气虚"表现，与脾肺肾功能密切相关</p>
+                        </div>
+                    </div>
+                    <div class="level-item">
+                        <div class="level-value">寒症表现</div>
+                        <div class="level-desc">
+                            <p>反映寒邪轻重，分值越高表示寒象越明显</p>
+                            <p>中医认为"阳虚则外寒"，寒症反映机体阳气不足</p>
+                        </div>
+                    </div>
+                    <div class="level-item">
+                        <div class="level-value">热症表现</div>
+                        <div class="level-desc">
+                            <p>反映热邪轻重，分值越高表示热象越明显</p>
+                            <p>中医认为"阳盛则热"，热症反映邪正相争剧烈</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="symptom-item">
+                <div class="symptom-title">三、药材推荐原理</div>
+                <p>系统根据"辨证论治"原则匹配药材：</p>
+                <ol>
+                    <li><strong>嗓子症状：</strong>推荐清热解毒、利咽止痛的药材</li>
+                    <li><strong>胃肠症状：</strong>推荐健脾和胃、理气消食的药材</li>
+                    <li><strong>能量状况：</strong>推荐补气健脾、益肺固表的药材</li>
+                    <li><strong>寒症表现：</strong>推荐温阳散寒、解表发汗的药材</li>
+                    <li><strong>热症表现：</strong>推荐清热解毒、泻火退热的药材</li>
+                </ol>
+                <p>药材剂量根据症状严重程度计算，确保安全有效。</p>
+            </div>
+            
+            <div class="symptom-item">
+                <div class="symptom-title">四、使用注意事项</div>
+                <ul>
+                    <li>本系统推荐仅供参考，不能替代专业中医诊断</li>
+                    <li>孕妇、儿童、老年人及慢性病患者使用前应咨询医师</li>
+                    <li>如出现以下情况应立即就医：
+                        <ul>
+                            <li>高热不退(超过39°C持续24小时)</li>
+                            <li>呼吸困难或胸痛</li>
+                            <li>意识模糊或抽搐</li>
+                            <li>严重脱水症状</li>
+                        </ul>
+                    </li>
+                    <li>中药服用期间应忌食生冷、油腻、辛辣食物</li>
+                    <li>如症状3日内无改善或加重，应停止使用并就医</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>中医治感冒开方小程序 © 2023 | 本程序仅供参考，不能替代专业医疗建议</p>
+    </div>
+
+    <script>
+        const medicineData = {
+            '风油精': [8, 5, 3, 2, 8],
+            '姜汤': [2, 4, 5, 10, 3],
+            '罗汉果': [7, 3, 4, 1, 6],
+            '胡椒': [1, 6, 2, 9, 1],
+            '红糖': [3, 5, 7, 6, 2],
+            '茯苓': [2, 8, 6, 4, 1],
+            '炒麦芽': [1, 9, 3, 3, 1],
+            '山药': [2, 7, 8, 3, 1],
+            '柠檬': [9, 3, 4, 1, 5],
+            '陈皮': [8, 6, 3, 2, 4],
+            '鲜橘子皮': [9, 2, 3, 1, 4],
+            '鲜橘子肉': [4, 3, 7, 2, 3]
+        };
+
+        const symptomNames = ['嗓子', '胃肠', '能量', '寒症', '热症'];
+
+        function updateSliderValue(slider) {
+            slider.nextElementSibling.textContent = slider.value;
+        }
+
+        function switchTab(tabName) {
+            // 隐藏所有标签内容
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 取消所有标签的活动状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 显示选中的标签内容
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // 设置选中标签的活动状态
+            event.currentTarget.classList.add('active');
+        }
+
+        function calculateMedicine() {
+            // 获取输入值
+            const throat = parseInt(document.getElementById('throat').value);
+            const stomach = parseInt(document.getElementById('stomach').value);
+            const energy = parseInt(document.getElementById('energy').value);
+            const cold = parseInt(document.getElementById('cold').value);
+            const heat = parseInt(document.getElementById('heat').value);
+            
+            const symptoms = [throat, stomach, energy, cold, heat];
+            
+            // 计算每种药材的分数
+            const scores = {};
+            for (const [medicine, values] of Object.entries(medicineData)) {
+                let score = 0;
+                for (let i = 0; i < values.length; i++) {
+                    score += values[i] * symptoms[i];
+                }
+                scores[medicine] = score;
+            }
+            
+            // 排序并获取前6名
+            const sortedMedicines = Object.keys(scores).sort((a, b) => scores[b] - scores[a]).slice(0, 6);
+            
+            // 显示结果
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<h2>推荐药方</h2>';
+            
+            if (sortedMedicines.length === 0 || Math.max(...Object.values(scores)) <= 0) {
+                resultsDiv.innerHTML += '<p>根据您的症状，建议休息观察或咨询医师，暂无特别推荐的中药材。</p>';
+                return;
+            }
+            
+            // 计算最大分数用于剂量标准化
+            const maxScore = Math.max(...Object.values(scores));
+            
+            sortedMedicines.forEach(medicine => {
+                if (scores[medicine] <= 0) return;
+                
+                const card = document.createElement('div');
+                card.className = 'medicine-card';
+                
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'medicine-name';
+                nameDiv.textContent = medicine;
+                
+                // 计算剂量（分数/10，最小3g，最大15g）
+                let dose = Math.min(15, Math.max(3, Math.round(scores[medicine] / 10)));
+                let unit = 'g'; // 默认单位为克
+                
+                // 风油精特殊处理，单位为滴
+                if (medicine === '风油精') {
+                    dose = Math.min(10, Math.max(2, Math.round(scores[medicine] / 15))); // 2-10滴
+                    unit = '滴';
+                }
+                
+                const doseDiv = document.createElement('div');
+                doseDiv.className = 'medicine-dose';
+                doseDiv.textContent = `${dose}${unit}`;
+                
+                const valuesDiv = document.createElement('div');
+                valuesDiv.className = 'medicine-values';
+                
+                medicineData[medicine].forEach((value, index) => {
+                    const valueItem = document.createElement('div');
+                    valueItem.className = 'value-item';
+                    
+                    const valueLabel = document.createElement('div');
+                    valueLabel.className = 'value-label';
+                    valueLabel.textContent = symptomNames[index];
+                    
+                    const valueNumber = document.createElement('div');
+                    valueNumber.className = 'value-number';
+                    valueNumber.textContent = value;
+                    
+                    // 根据数值正负设置不同颜色
+                    if (value > 5) {
+                        valueNumber.classList.add('positive');
+                    } else if (value > 0) {
+                        valueNumber.classList.add('zero');
+                    }
+                    
+                    valueItem.appendChild(valueLabel);
+                    valueItem.appendChild(valueNumber);
+                    valuesDiv.appendChild(valueItem);
+                });
+                
+                card.appendChild(nameDiv);
+                card.appendChild(doseDiv);
+                card.appendChild(valuesDiv);
+                resultsDiv.appendChild(card);
+            });
+            
+            if (resultsDiv.children.length === 1) {
+                resultsDiv.innerHTML += '<p>根据您的症状，建议休息观察或咨询医师，暂无特别推荐的中药材。</p>';
+            } else {
+                resultsDiv.innerHTML += `
+                    <div class="note" style="margin-top:20px;">
+                        <p><strong>服用方法：</strong></p>
+                        <ul>
+                            <li>药材标注为"g"的：每日1剂，水煎分2次温服</li>
+                            <li>风油精：外用，每次${document.querySelector('.medicine-card:first-child .medicine-dose').textContent}，涂抹于太阳穴或咽喉部位</li>
+                            <li>饭前或饭后1小时服用</li>
+                            <li>连续使用不超过3天</li>
+                            <li>症状消失即可停用</li>
+                        </ul>
+                        <p>注：如出现不适或症状加重，应立即停用并就医。</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
